@@ -17,7 +17,7 @@ class LoginCubit extends Cubit<LoginState> {
     var result = await loginRepo.loginUser(loginModel);
     result.fold(
       (failuer) {
-        emit(LoginFailure(failuer.message));
+        emit(LoginFailure(failuer.message,failuer.code));
       },
       (loginData) {
         emit(LoginSuccess(loginData));

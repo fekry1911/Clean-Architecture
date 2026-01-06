@@ -1,3 +1,5 @@
+import 'package:clean_architecture/core/data/mapper/error_mapper.dart';
+import 'package:clean_architecture/core/data/model/error_response.dart';
 import 'package:clean_architecture/core/network/exception.dart';
 import 'package:clean_architecture/core/network/failuer.dart';
 import 'package:clean_architecture/featuers/login/data/mapper/login_mapper.dart';
@@ -7,6 +9,7 @@ import 'package:clean_architecture/featuers/login/domain/entity/user_token.dart'
 import 'package:clean_architecture/featuers/login/domain/repo/logi_repo.dart';
 import 'package:dartz/dartz.dart';
 
+import '../../../../core/domain/error_entity.dart';
 import '../data_source/login_service.dart';
 
 class LoginUserImpl extends LoginRepo {
@@ -23,9 +26,10 @@ class LoginUserImpl extends LoginRepo {
       print(loginResponse);
       return right(loginResponse.toEntity());
     } on NetWorkException {
-      return left(NetWorkFailuer("something went wrong"));
-    } catch (_) {
-      return left(ServerFailuer("something went wrong"));
+      return left(NetWorkFailuer("something went wrong",500));
+    } on ServerException catch (e) {
+      ErrorModel errorModel = e.data.toEntity();
+      return left(ServerFailuer(errorModel.message, errorModel.code));
     }
   }
 }

@@ -1,8 +1,14 @@
 import 'package:animated_login/animated_login.dart';
+import 'package:clean_architecture/core/di/di.dart';
+import 'package:clean_architecture/featuers/home/presentation/logic/products_cubit.dart';
 import 'package:clean_architecture/featuers/login/data/models/login_request_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:page_transition/page_transition.dart';
+import 'package:quickalert/models/quickalert_type.dart';
+import 'package:quickalert/widgets/quickalert_dialog.dart';
 
+import '../../../home/presentation/screens/home_screen.dart';
 import '../logic/login_cubit.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -55,16 +61,40 @@ class _LoginScreenState extends State<LoginScreen> {
               listener: (BuildContext context, state) {
                 if (state is LoginSuccess) {
                   Navigator.of(context).pop();
-                  DialogBuilder(context).showResultDialog(
-                    "Success Login ${state.loginData.name}"
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.success,
+                    text: "welcome" + state.loginData.name,
+                    confirmBtnText: 'Save',
+                    onConfirmBtnTap: () {
+                      context.pushAndRemoveUntilTransition(
+                        type: PageTransitionType.fade,
+                        child: BlocProvider(
+                          create: (context) => getIt<ProductsCubit>()..getAllProductsData(),
+                          child: AllProducts(),
+                        ),
+                        predicate: (route) => false,
+                      );
+                    },
+                    confirmBtnColor: Colors.green,
                   );
                 }
                 if (state is LoginLoading) {
-                  DialogBuilder(context).showLoadingDialog();
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.loading,
+                    title: 'Loading',
+                    text: 'Fetching your data',
+                  );
                 } else if (state is LoginFailure) {
                   Navigator.of(context).pop();
-                  DialogBuilder(context).showResultDialog(
-                    "Error Login"
+                  QuickAlert.show(
+                    context: context,
+                    confirmBtnText: 'Save',
+
+                    type: QuickAlertType.error,
+                    title: state.code.toString(),
+                    text: state.message,
                   );
                 }
               },
